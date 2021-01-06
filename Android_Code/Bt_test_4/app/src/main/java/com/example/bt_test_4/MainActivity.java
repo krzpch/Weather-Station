@@ -75,22 +75,26 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Set<BluetoothDevice> bt=bluetoothAdapter.getBondedDevices(); // get list of bonded devices
                 String MACaddr = "";
-                if(bt.size()>0) {
-                    for (BluetoothDevice device : bt) { // search list
-                        if (device.getName().equals("HC-05")) { // if HC-05 is found
-                            MACaddr = device.getAddress(); // get its MAC address
+                if(!connected) {
+                    if (bt.size() > 0) {
+                        for (BluetoothDevice device : bt) { // search list
+                            if (device.getName().equals("HC-05")) { // if HC-05 is found
+                                MACaddr = device.getAddress(); // get its MAC address
+                            }
                         }
                     }
-                }
 
-                if(!MACaddr.isEmpty()) { // if HC-05 was found in the list
-                    BluetoothDevice hc05 = bluetoothAdapter.getRemoteDevice(MACaddr);
-                    ClientClass clientClass=new ClientClass(hc05);
-                    clientClass.start(); // start connection as client
-                    status.setText("Connecting");
+                    if (!MACaddr.isEmpty()) { // if HC-05 was found in the list
+                        BluetoothDevice hc05 = bluetoothAdapter.getRemoteDevice(MACaddr);
+                        ClientClass clientClass = new ClientClass(hc05);
+                        clientClass.start(); // start connection as client
+                        status.setText("Connecting");
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Device is not bonded.", Toast.LENGTH_LONG).show(); // show prompt
+                    }
                 }
                 else {
-                    Toast.makeText(getApplicationContext(), "Device is not bonded.", Toast.LENGTH_LONG).show(); // show prompt
+                    Toast.makeText(getApplicationContext(), "Already connected.", Toast.LENGTH_LONG).show(); // show prompt
                 }
             }
         });
@@ -98,7 +102,7 @@ public class MainActivity extends AppCompatActivity {
         send.setOnClickListener(new View.OnClickListener() { // when button send is pressed
             @Override
             public void onClick(View view) {
-                String string = String.valueOf(writeMsg.getText());  // add timestamp to entered message
+                String string = String.valueOf(writeMsg.getText());  // get message from text box
                 if(connected) { // if connection is established
                     sendReceive.write(string.getBytes()); // send
                 }
