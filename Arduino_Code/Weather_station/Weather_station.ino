@@ -10,8 +10,8 @@
 #define DHTPIN 4
 #define DHTTYPE    DHT22
 
-#define TIME_HEADER  "T"   // Header tag for serial time sync message
-#define DATA_HEADER  "D"   // Header tag for ordering temperature and humidity
+#define TIME_HEADER  "SYNC"   // Header tag for serial time sync message
+#define DATA_HEADER  "DATA"   // Header tag for ordering temperature and humidity
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27,16,2);
@@ -87,11 +87,14 @@ void loop() {
 
 
 void processSyncMessage(String text) {
-  String temp = text.substring(1,11);
+  String temp = text.substring(5,15);
   long tstamp = temp.toInt() + 3600; // current time UTC + 1H (GMT+1)
   const unsigned long DEFAULT_TIME = 1609459200; // Jan 1 2021
   if( tstamp >= DEFAULT_TIME) { // check the integer is a valid time (greater than Jan 1 2021)
     setTime(tstamp); // Sync Arduino clock to the time received
+    Serial.println("Time Sync succeeded");
+  } else {
+    Serial.println("Time Sync failed");
   }
 }
 
@@ -105,9 +108,10 @@ void Return_message(){
 
 
 void checkMessageForTag(String text) {
-  String check_tag = text.substring(0,1);
+  String check_tag = text.substring(0,4);
   if (check_tag == TIME_HEADER){
     processSyncMessage(text);
+    
   }
   if (check_tag == DATA_HEADER){
     Return_message();
