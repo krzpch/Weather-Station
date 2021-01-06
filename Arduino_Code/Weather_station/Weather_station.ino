@@ -11,8 +11,7 @@
 #define DHTTYPE    DHT22
 
 #define TIME_HEADER  "T"   // Header tag for serial time sync message
-#define DATA_HEADER  "D"
-//#define TIME_REQUEST  7    // ASCII bell character requests a time sync message 
+#define DATA_HEADER  "D"   // Header tag for ordering temperature and humidity
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27,16,2);
@@ -20,7 +19,7 @@ uint32_t delayMS;
 
 String receivedData = "";
 float Temperature, Humidity;
-int i = 0;
+int LCD_change = 0;
 
 sensors_event_t event; // DHT event
 
@@ -48,23 +47,20 @@ void setup() {
 } // end of setup
 
 void loop() {
-  if (i == 0){  // LCD print temp + hum
+  if (LCD_change == 0){  // LCD print temperature and humidity
     dht.temperature().getEvent(&event);
     Temperature = event.temperature;
     dht.humidity().getEvent(&event);
     Humidity = event.relative_humidity;
+    String temp = ("Temp: " + String(Temperature,2) + (char)223 + "C");
     lcd.setCursor(0,0);
-    lcd.print("Temp: ");
-    lcd.print(Temperature);
-    lcd.print((char)223);
-    lcd.print("C   ");
+    lcd.print(temp);
+    temp = ("Hum: " + String(Humidity,2) + "% RH");
     lcd.setCursor(0,1);
-    lcd.print("Hum: ");
-    lcd.print(Humidity);
-    lcd.print("% RH  ");
-    i = 160;
+    lcd.print(temp);
+    LCD_change = 160;
   }
-  if (i == 80){  // LCD print time + date
+  if (LCD_change == 80){  // LCD print time + date
     String temp = (today() + " " + (String)hour() + ":" +  (String)(minute()/10) + (String)(minute()%10) + "          ");
     lcd.setCursor(0,0);
     lcd.print(temp);
@@ -84,7 +80,7 @@ void loop() {
   }
    
   receivedData.remove(0,-1); // clear receivedData string
-  i--;
+  LCD_change--;
   delay(100);
 } // end of loop
 
