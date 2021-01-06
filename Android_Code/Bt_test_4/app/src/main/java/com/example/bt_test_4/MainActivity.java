@@ -48,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     int REQUEST_ENABLE_BLUETOOTH=1;
 
-    private static final String APP_NAME = "Bt_test_4";
+    //private static final String APP_NAME = "Weather Station Companion";
     private static final UUID MY_UUID=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
     @Override
