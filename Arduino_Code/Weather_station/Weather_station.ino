@@ -10,8 +10,10 @@
 #define DHTPIN 4
 #define DHTTYPE    DHT22
 
-#define TIME_HEADER  "SYNC"   // Header tag for serial time sync message
-#define DATA_HEADER  "DATA"   // Header tag for ordering temperature and humidity
+#define TIME_HEADER     "SYNC"    // Header tag for serial time sync message
+#define DATA_HEADER     "DATA"    // Header tag for ordering temperature and humidity
+#define BACKLIGHT_ON    "BLON"    // Header tag for turning on LCD backlight
+#define BACKLIGHT_OFF   "BLOF"    // Header tag for turning off LCD backlight
 
 DHT_Unified dht(DHTPIN, DHTTYPE);
 LiquidCrystal_I2C lcd(0x27,16,2);
@@ -113,8 +115,14 @@ void checkMessageForTag(String text) {
     processSyncMessage(text);
     
   }
-  if (check_tag == DATA_HEADER){
+  else if (check_tag == DATA_HEADER){ // ordering data
     Return_message();
+  } 
+  else if (check_tag == BACKLIGHT_ON){
+    lcd.backlight();
+  }
+  else if (check_tag == BACKLIGHT_OFF){
+    lcd.noBacklight();
   } 
 }
 
