@@ -228,8 +228,7 @@ public class MainActivity extends AppCompatActivity {
             while (true)
             {
                 try {
-                    while(inputStream.available()==0); // block socket until data received
-                    while((inputStream.available()>0) || (!temp.endsWith("\n"))) { // read input stream until there is nothing to read and end of data symbol is received
+                    while(!temp.endsWith("\n")) { // read input stream until end of data symbol is received
                         bytes = inputStream.read(buffer);
                         temp += new String(buffer, 0, bytes);
                     }
