@@ -2,15 +2,12 @@ package com.example.bt_test_4;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothProfile;
-import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.Message;
 import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -70,45 +67,41 @@ public class MainActivity extends AppCompatActivity {
 
     private void btConnectSendReceive() {
 
-        connect.setOnClickListener(new View.OnClickListener() { // when button connect is pressed
-            @Override
-            public void onClick(View view) {
-                Set<BluetoothDevice> bt=bluetoothAdapter.getBondedDevices(); // get list of bonded devices
-                String MACaddr = "";
-                if(!connected) {
-                    if (bt.size() > 0) {
-                        for (BluetoothDevice device : bt) { // search list
-                            if (device.getName().equals("HC-05")) { // if HC-05 is found
-                                MACaddr = device.getAddress(); // get its MAC address
-                            }
+        // when button connect is pressed
+        connect.setOnClickListener(view -> {
+            Set<BluetoothDevice> bt=bluetoothAdapter.getBondedDevices(); // get list of bonded devices
+            String MACaddr = "";
+            if(!connected) {
+                if (bt.size() > 0) {
+                    for (BluetoothDevice device : bt) { // search list
+                        if (device.getName().equals("HC-05")) { // if HC-05 is found
+                            MACaddr = device.getAddress(); // get its MAC address
                         }
                     }
+                }
 
-                    if (!MACaddr.isEmpty()) { // if HC-05 was found in the list
-                        BluetoothDevice hc05 = bluetoothAdapter.getRemoteDevice(MACaddr);
-                        ClientClass clientClass = new ClientClass(hc05);
-                        clientClass.start(); // start connection as client
-                        status.setText("Connecting");
-                    } else {
-                        Toast.makeText(getApplicationContext(), "Device is not bonded.", Toast.LENGTH_LONG).show(); // show prompt
-                    }
+                if (!MACaddr.isEmpty()) { // if HC-05 was found in the list
+                    BluetoothDevice hc05 = bluetoothAdapter.getRemoteDevice(MACaddr);
+                    ClientClass clientClass = new ClientClass(hc05);
+                    clientClass.start(); // start connection as client
+                    status.setText("Connecting");
+                } else {
+                    Toast.makeText(getApplicationContext(), "Device is not bonded.", Toast.LENGTH_LONG).show(); // show prompt
                 }
-                else {
-                    Toast.makeText(getApplicationContext(), "Already connected.", Toast.LENGTH_LONG).show(); // show prompt
-                }
+            }
+            else {
+                Toast.makeText(getApplicationContext(), "Already connected.", Toast.LENGTH_LONG).show(); // show prompt
             }
         });
 
-        send.setOnClickListener(new View.OnClickListener() { // when button send is pressed
-            @Override
-            public void onClick(View view) {
-                String string = String.valueOf(writeMsg.getText());  // get message from text box
-                if(connected) { // if connection is established
-                    sendReceive.write(string.getBytes()); // send
-                }
-                else {
-                    Toast.makeText(getApplicationContext(), "Not connected.", Toast.LENGTH_LONG).show(); // show prompt
-                }
+        // when button send is pressed
+        send.setOnClickListener(view -> {
+            String string = String.valueOf(writeMsg.getText());  // get message from text box
+            if(connected) { // if connection is established
+                sendReceive.write(string.getBytes()); // send
+            }
+            else {
+                Toast.makeText(getApplicationContext(), "Not connected.", Toast.LENGTH_LONG).show(); // show prompt
             }
         });
     }
@@ -143,30 +136,28 @@ public class MainActivity extends AppCompatActivity {
     });
 
     private void findEachViewById() { // method associating widgets with java objects
-        send=(Button) findViewById(R.id.send);
-        connect=(Button) findViewById(R.id.connect);
-        status=(TextView) findViewById(R.id.status);
-        writeMsg=(EditText) findViewById(R.id.writemsg);
-        list=(ListView) findViewById(R.id.listView);
+        send= findViewById(R.id.send);
+        connect= findViewById(R.id.connect);
+        status= findViewById(R.id.status);
+        writeMsg= findViewById(R.id.writemsg);
+        list= findViewById(R.id.listView);
     }
 
     private void display(String input) { // method displaying list of received through bluetooth data
         data.add(0,input);
-        ArrayAdapter<String> arrayAdapter=new ArrayAdapter<String>(getApplicationContext(),android.R.layout.simple_list_item_1,data);
+        ArrayAdapter<String> arrayAdapter=new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,data);
         list.setAdapter(arrayAdapter);
     }
 
     private class ClientClass extends Thread
     {
-        private BluetoothDevice device;
         private BluetoothSocket socket;
 
-        public ClientClass (BluetoothDevice device1) // constructor
+        public ClientClass (BluetoothDevice device) // constructor
         {
-            device=device1;
 
             try {
-                socket=device.createRfcommSocketToServiceRecord(MY_UUID); //  try to create a socket
+                socket= device.createRfcommSocketToServiceRecord(MY_UUID); //  try to create a socket
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -194,19 +185,17 @@ public class MainActivity extends AppCompatActivity {
 
     private class SendReceive extends Thread
     {
-        private final BluetoothSocket bluetoothSocket;
         private final InputStream inputStream;
         private final OutputStream outputStream;
 
         public SendReceive (BluetoothSocket socket) // constructor
         {
-            bluetoothSocket=socket;
             InputStream tempIn=null;
             OutputStream tempOut=null;
 
             try { // try to get input and output streams
-                tempIn=bluetoothSocket.getInputStream();
-                tempOut=bluetoothSocket.getOutputStream();
+                tempIn= socket.getInputStream();
+                tempOut= socket.getOutputStream();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -223,17 +212,17 @@ public class MainActivity extends AppCompatActivity {
         {
             byte[] buffer=new byte[512];
             int bytes;
-            String temp = "";
+            StringBuilder temp = new StringBuilder();
 
             while (true)
             {
                 try {
-                    while(!temp.endsWith("\n")) { // read input stream until end of data symbol is received
+                    while(!temp.toString().endsWith("\n")) { // read input stream until end of data symbol is received
                         bytes = inputStream.read(buffer);
-                        temp += new String(buffer, 0, bytes);
+                        temp.append(new String(buffer, 0, bytes));
                     }
-                    handler.obtainMessage(STATE_MESSAGE_RECEIVED, -1, -1, temp).sendToTarget(); // send to handler to display
-                    temp="";
+                    handler.obtainMessage(STATE_MESSAGE_RECEIVED, -1, -1, temp.toString()).sendToTarget(); // send to handler to display
+                    temp = new StringBuilder();
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
