@@ -21,7 +21,7 @@ uint32_t delayMS;
 
 String receivedData = "";
 float Temperature, Humidity;
-int LCD_change = 0;
+uint8_t LCD_change = 0;
 
 sensors_event_t event; // DHT event
 
@@ -86,8 +86,6 @@ void loop() {
   delay(100);
 } // end of loop
 
-
-
 void processSyncMessage(String text) {
   String temp = text.substring(5,15);
   long tstamp = temp.toInt() + 3600; // current time UTC + 1H (GMT+1)
@@ -98,22 +96,19 @@ void processSyncMessage(String text) {
   } else {
     Serial.println("Time Sync failed");
   }
-}
-
+} // end of void processSyncMessage()
 
 void Return_message(){
 //  String temp = ((String)hour() + ":" +  (String)minute() + " " + (String)day() + "." + (String)month() + "." + (String)year());
 //  Serial.println(temp); 
   String temp = ("Temp: " + String(Temperature) + "\u00B0C, Hum: " + String(Humidity) + "% RH");
   Serial.println(temp);
-}
-
+} // end of void Return_message()
 
 void checkMessageForTag(String text) {
   String check_tag = text.substring(0,4);
   if (check_tag == TIME_HEADER){
     processSyncMessage(text);
-    
   }
   else if (check_tag == DATA_HEADER){ // ordering data
     Return_message();
@@ -124,9 +119,9 @@ void checkMessageForTag(String text) {
   else if (check_tag == BACKLIGHT_OFF){
     lcd.noBacklight();
   } 
-}
+} //end of void checkMessageForTag()
 
 String today() {
   String week[7] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
   return week[weekday()];
-}
+} // end of String today()
