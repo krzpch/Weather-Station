@@ -48,7 +48,7 @@ void setup() {
   
 } // end of setup
 
-void loop() {
+void loop() {  
   if (LCD_change == 0){  // LCD print temperature and humidity
     dht.temperature().getEvent(&event);
     Temperature = event.temperature;
@@ -92,9 +92,9 @@ void processSyncMessage(String text) {
   const unsigned long DEFAULT_TIME = 1609459200; // Jan 1 2021
   if( tstamp >= DEFAULT_TIME) { // check the integer is a valid time (greater than Jan 1 2021)
     setTime(tstamp); // Sync Arduino clock to the time received
-    Serial.println("Time Sync succeeded");
+//    Serial.println("Time Sync succeeded");
   } else {
-    Serial.println("Time Sync failed");
+//    Serial.println("Time Sync failed");
   }
 } // end of void processSyncMessage()
 
@@ -110,8 +110,9 @@ void checkMessageForTag(String text) {
   if (check_tag == TIME_HEADER){
     processSyncMessage(text);
   }
-  else if (check_tag == DATA_HEADER){ // ordering data
-    Return_message();
+  else if (check_tag == DATA_HEADER){ // ordering data transfer
+    if (analogRead(A0) >= 500)
+      Return_message();
   } 
   else if (check_tag == BACKLIGHT_ON){
     lcd.backlight();
