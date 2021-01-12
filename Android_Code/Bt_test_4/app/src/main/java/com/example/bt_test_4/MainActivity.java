@@ -177,6 +177,7 @@ public class MainActivity extends AppCompatActivity {
 
         if(hist_count==24) {
             hist_recv=false;
+            hist_count=0;
         }
     }
 
