@@ -26,9 +26,8 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button send, connect;
-    TextView status;
-    EditText writeMsg;
+    Button history, connect, getCurrent;
+    TextView status, current;
     ListView list;
 
     BluetoothAdapter bluetoothAdapter=BluetoothAdapter.getDefaultAdapter();
@@ -42,8 +41,10 @@ public class MainActivity extends AppCompatActivity {
     static final int STATE_MESSAGE_RECEIVED=4;
 
     boolean connected = false;
+    boolean hist_recv = false;
 
     int REQUEST_ENABLE_BLUETOOTH=1;
+    int hist_count= 0;
 
     //private static final String APP_NAME = "Weather Station Companion";
     private static final UUID MY_UUID=UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -94,11 +95,27 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // when button send is pressed
-        send.setOnClickListener(view -> {
-            String string = String.valueOf(writeMsg.getText());  // get message from text box
+        // when button history is pressed
+        history.setOnClickListener(view -> {
+            String string = "HIST";  // history request command
             if(connected) { // if connection is established
                 sendReceive.write(string.getBytes()); // send
+                hist_recv=true;
+            }
+            else {
+                Toast.makeText(getApplicationContext(), "Not connected.", Toast.LENGTH_LONG).show(); // show prompt
+            }
+        });
+
+        getCurrent.setOnClickListener(view -> {
+            String string = "DATA";  // current temperature and humidity request command
+            if(connected) { // if connection is established
+                if(!hist_recv) {
+                    sendReceive.write(string.getBytes()); // send
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "Not available.", Toast.LENGTH_LONG).show(); // show prompt
+                }
             }
             else {
                 Toast.makeText(getApplicationContext(), "Not connected.", Toast.LENGTH_LONG).show(); // show prompt
@@ -128,7 +145,12 @@ public class MainActivity extends AppCompatActivity {
                     //byte[] readBuff= (byte[]) msg.obj;
                     //String tempMsg=new String(readBuff,0,msg.arg1);
                     String tempMsg = (String) msg.obj;
-                    display(tempMsg);
+                    if(hist_recv) {
+                        display(tempMsg);
+                    }
+                    else {
+                        current.setText(tempMsg);
+                    }
                     break;
             }
             return true;
@@ -136,17 +158,26 @@ public class MainActivity extends AppCompatActivity {
     });
 
     private void findEachViewById() { // method associating widgets with java objects
-        send= findViewById(R.id.send);
+        history= findViewById(R.id.history);
         connect= findViewById(R.id.connect);
         status= findViewById(R.id.status);
-        writeMsg= findViewById(R.id.writemsg);
         list= findViewById(R.id.listView);
+        current= findViewById(R.id.current);
+        getCurrent= findViewById(R.id.getCurrent);
     }
 
     private void display(String input) { // method displaying list of received through bluetooth data
+        if(hist_count==0) {
+            data.clear();
+        }
         data.add(0,input);
         ArrayAdapter<String> arrayAdapter=new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,data);
         list.setAdapter(arrayAdapter);
+        hist_count++;
+
+        if(hist_count==24) {
+            hist_recv=false;
+        }
     }
 
     private class ClientClass extends Thread
