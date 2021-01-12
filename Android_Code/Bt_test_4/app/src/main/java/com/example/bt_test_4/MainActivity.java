@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -22,11 +21,13 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.UUID;
+import java.util.TimerTask;
+import java.util.Timer;
 
 
 public class MainActivity extends AppCompatActivity {
 
-    Button history, connect, getCurrent;
+    Button history, connect;
     TextView status, current;
     ListView list;
 
@@ -106,21 +107,6 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "Not connected.", Toast.LENGTH_LONG).show(); // show prompt
             }
         });
-
-        getCurrent.setOnClickListener(view -> {
-            String string = "DATA";  // current temperature and humidity request command
-            if(connected) { // if connection is established
-                if(!hist_recv) {
-                    sendReceive.write(string.getBytes()); // send
-                }
-                else {
-                    Toast.makeText(getApplicationContext(), "Not available.", Toast.LENGTH_LONG).show(); // show prompt
-                }
-            }
-            else {
-                Toast.makeText(getApplicationContext(), "Not connected.", Toast.LENGTH_LONG).show(); // show prompt
-            }
-        });
     }
 
     Handler handler=new Handler(new Handler.Callback() {
@@ -142,8 +128,6 @@ public class MainActivity extends AppCompatActivity {
                     connected = false;
                     break;
                 case STATE_MESSAGE_RECEIVED:
-                    //byte[] readBuff= (byte[]) msg.obj;
-                    //String tempMsg=new String(readBuff,0,msg.arg1);
                     String tempMsg = (String) msg.obj;
                     if(hist_recv) {
                         display(tempMsg);
@@ -163,7 +147,6 @@ public class MainActivity extends AppCompatActivity {
         status= findViewById(R.id.status);
         list= findViewById(R.id.listView);
         current= findViewById(R.id.current);
-        getCurrent= findViewById(R.id.getCurrent);
     }
 
     private void display(String input) { // method displaying list of received through bluetooth data
@@ -174,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
         if(hist_count==0) {
             data.clear();
         }
-        data.add(0, "Time:\u00A0"+ time + "Temp:\u00A0" + temp + "°C Hum:\u00A0" + hum + "%\u00A0RH");
+        data.add(0, "Time:\u00A0"+ time + "Temp:\u00A0" + temp + "°C\u00A0Hum:\u00A0" + hum + "%\u00A0RH");
         ArrayAdapter<String> arrayAdapter=new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,data);
         list.setAdapter(arrayAdapter);
         hist_count++;
@@ -182,6 +165,26 @@ public class MainActivity extends AppCompatActivity {
         if(hist_count==24) {
             hist_recv=false;
             hist_count=0;
+        }
+    }
+
+    private class GetCurrentTimer { // timer class to update current conditions every set number of seconds
+        Timer timer;
+
+        public GetCurrentTimer(int seconds) {
+            timer = new Timer();
+            timer.schedule(new RefreshTask(), 1000, seconds*1000); // set timer parameters
+        }
+
+        class RefreshTask extends TimerTask { // run every timer period
+            public void run() {
+                String string = "DATA";  // current temperature and humidity request command
+                if(connected) { // if connection is established
+                    if (!hist_recv) {
+                        sendReceive.write(string.getBytes()); // send
+                    }
+                }
+            }
         }
     }
 
@@ -242,6 +245,7 @@ public class MainActivity extends AppCompatActivity {
             String string = "SYNC " + System.currentTimeMillis(); // when establishing connection send timestamp to synchronize time
             write(string.getBytes());
 
+            GetCurrentTimer getcurrenttimer=new GetCurrentTimer(30); // set timer to update current conditions every 30s
         }
 
         public void run()
