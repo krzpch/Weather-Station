@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
         if(hist_count==0) {
             data.clear();
         }
-        data.add(0,time + "\n" + temp + "°C " + hum + "% RH");
+        data.add(0,time + "                    " + temp + "°C " + hum + "% RH");
         ArrayAdapter<String> arrayAdapter=new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,data);
         list.setAdapter(arrayAdapter);
         hist_count++;
