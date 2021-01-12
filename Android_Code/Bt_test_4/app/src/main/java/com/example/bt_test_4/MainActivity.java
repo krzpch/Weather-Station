@@ -167,10 +167,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void display(String input) { // method displaying list of received through bluetooth data
+        String temp = input.substring(0,10);
+        String hum = input.substring(14,22);
+        String time = input.substring(25);
+
         if(hist_count==0) {
             data.clear();
         }
-        data.add(0,input);
+        data.add(0,temp + "°C " + hum + "% RH " + time);
         ArrayAdapter<String> arrayAdapter=new ArrayAdapter<>(getApplicationContext(),android.R.layout.simple_list_item_1,data);
         list.setAdapter(arrayAdapter);
         hist_count++;
