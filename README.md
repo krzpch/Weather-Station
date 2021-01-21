@@ -1,5 +1,5 @@
 # Weather-Station
-This project was made for Design labolatory at AGH UST. The main idea was to make simple weather station with Android app companion. The weather station is based on Arduino Uno board and it can measure temperature and humidity using DHT22 sensor. In addition LCD shows current measurments and time. The dada shown on LCD are switched automaticly after few seconds. The Android aplication connects to station via Bluetooth.
+This project was made for Design labolatory at AGH UST. The main idea was to make simple weather station with Android app companion. The weather station is based on Arduino Uno board and it can measure temperature and humidity using DHT22 sensor. In addition LCD shows current measurments and time. The data shown on LCD are switched automaticly after few seconds. The Android aplication connects to station via Bluetooth.
 
 ## Hardware reqired
 - Arduino compatible board
